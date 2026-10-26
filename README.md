@@ -15,7 +15,7 @@
 **ClickTrap** is a cybersecurity tool and web scanner that helps users identify deceptive user-interface designs (dark patterns) across websites. It detects manipulative countdown timers, hidden checkout fees, artificial scarcity claims, asymmetric cookie banners, and guilt-inducing opt-out buttons.
 
 ### Key Ways to Use ClickTrap:
-1. **Direct Web Scanner (`dashboard/index.html`):** Simply enter any website URL, pick a test page, or paste HTML code directly to inspect dark patterns.
+1. **Direct Web Scanner (`index.html`):** Simply enter any website URL, pick a test page, or paste HTML code directly to inspect dark patterns. Root-level `index.html` is ready for instant GitHub Pages deployment.
 2. **Chrome Browser Extension (Manifest V3):** Browse normally, click the ClickTrap icon in your browser toolbar, and click **"Scan Webpage Now"** to scan and highlight elements on the live webpage.
 
 ---
@@ -33,7 +33,20 @@
 
 ---
 
-## 3. Quick-Start Guide
+## 3. GitHub Pages Deployment (Live Link Setup)
+
+To publish this repository on **GitHub Pages**:
+1. Push your repository to GitHub (`git push origin main`).
+2. On GitHub, go to your repository **Settings** &rarr; **Pages** (in the left sidebar).
+3. Under **Build and deployment** &rarr; **Source**, select **Deploy from a branch**.
+4. Under **Branch**, select **`main`** and choose folder **`/ (root)`**, then click **Save**.
+5. Within 1-2 minutes, GitHub Pages will deploy your site at:
+   `https://<your-username>.github.io/<your-repository>/`
+   Because `index.html` is at the root, your live link will display the **ClickTrap Web Scanner Dashboard** immediately (not the README file).
+
+---
+
+## 4. Quick-Start Guide
 
 ### Option 1: Run the Web Scanner Dashboard (Scan Any Website Directly)
 

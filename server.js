@@ -63,9 +63,15 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 2. Redirect root to dashboard
-  let filePath = pathname === '/' ? '/dashboard/index.html' : pathname;
-  filePath = path.join(__dirname, filePath);
+  // 2. Map root and dashboard routes to index.html
+  let reqPath = pathname;
+  if (reqPath === '/' || reqPath === '/dashboard' || reqPath === '/dashboard/') {
+    reqPath = '/index.html';
+  } else if (reqPath === '/dashboard/index.html') {
+    reqPath = '/index.html';
+  }
+
+  let filePath = path.join(__dirname, reqPath);
 
   // Security check to avoid directory traversal
   if (!filePath.startsWith(__dirname)) {
@@ -93,6 +99,19 @@ async function processScan(targetUrl, rawHtml, res) {
   let htmlToScan = rawHtml;
 
   if (!htmlToScan && targetUrl) {
+    const localTarget = targetUrl.trim().replace(/^\.\.\//, '').replace(/^\.\//, '');
+    const localFilePath = path.join(__dirname, localTarget);
+
+    if (fs.existsSync(localFilePath) && fs.statSync(localFilePath).isFile()) {
+      try {
+        htmlToScan = fs.readFileSync(localFilePath, 'utf8');
+      } catch (readErr) {
+        // Fall through to remote fetch
+      }
+    }
+  }
+
+  if (!htmlToScan && targetUrl) {
     try {
       let formattedUrl = targetUrl.trim();
       if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
@@ -100,13 +119,19 @@ async function processScan(targetUrl, rawHtml, res) {
       }
 
       console.log(`[ClickTrap Server] Fetching: ${formattedUrl}`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        try { controller.abort(); } catch (e) {}
+      }, 10000);
+
       const fetchResponse = await fetch(formattedUrl, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ClickTrap/1.0 DarkPatternDetector'
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 ClickTrap/1.0'
         },
         redirect: 'follow',
-        signal: AbortSignal.timeout(10000)
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
 
       if (!fetchResponse.ok) {
         sendJson(res, 400, { error: `Failed to fetch website (HTTP ${fetchResponse.status})` });

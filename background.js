@@ -103,7 +103,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
 
       case 'OPEN_DASHBOARD': {
-        const url = chrome.runtime.getURL('dashboard/index.html');
+        const url = chrome.runtime.getURL('index.html');
         chrome.tabs.create({ url });
         return { success: true, url };
       }

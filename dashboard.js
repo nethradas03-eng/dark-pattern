@@ -70,7 +70,141 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnDashClearData = document.getElementById('btn-dash-clear-data');
 
   // Initialize Detector in browser
-  const detector = new window.ClickTrapDetector(window.ClickTrapRules);
+  let detector = null;
+  if (typeof window.ClickTrapDetector === 'function' && window.ClickTrapRules) {
+    detector = new window.ClickTrapDetector(window.ClickTrapRules);
+  }
+
+  function getDetector() {
+    if (!detector && typeof window.ClickTrapDetector === 'function' && window.ClickTrapRules) {
+      detector = new window.ClickTrapDetector(window.ClickTrapRules);
+    }
+    return detector;
+  }
+
+  // Pre-compiled synthetic fixtures for instant 100% offline & GitHub Pages testing
+  const EMBEDDED_FIXTURES = {
+    'test-pages/fake-urgency.html': `<!DOCTYPE html>
+<html><head><title>FlashSale Direct</title></head><body>
+<div class="countdown-box">
+  <h3>⚡ FLASH SALE ENDS SOON! ⚡</h3>
+  <p>Offer expires in 2 minutes! Prices increase in 10 minutes!</p>
+  <div class="timer" id="demo-timer">01:58</div>
+  <p>Buy now before the timer ends!</p>
+</div>
+<div>
+  <h2>AcousticPro Noise-Canceling Headphones</h2>
+  <span style="color:#16A34A; font-size:24px;">$49.99</span>
+  <span style="text-decoration:line-through; color:#94A3B8;">$199.99</span>
+  <p style="color:#DC2626; font-weight:600;">Last chance to purchase! Time is running out!</p>
+  <button class="btn btn-danger">Claim Deal Now (Before Timer Ends)</button>
+</div>
+</body></html>`,
+
+    'test-pages/scarcity.html': `<!DOCTYPE html>
+<html><head><title>Skyline Suites Booking</title></head><body>
+<h2>Skyline Luxury Suite – Sea View</h2>
+<div class="stock-alert">🔥 High Demand: Only 1 room left in stock at this discounted rate! Almost sold out!</div>
+<div style="background:#EFF6FF; padding:10px;">👁️ Popular choice: 18 people are viewing this right now! Booked 8 times in the last hour!</div>
+<button class="btn btn-primary">Reserve Now – Only 1 item left</button>
+</body></html>`,
+
+    'test-pages/cookie-consent.html': `<!DOCTYPE html>
+<html><head><title>GlobalNews Portal Privacy</title></head><body>
+<div class="cookie-banner" id="cookie-banner">
+  <h4>We Value Your Browsing Privacy</h4>
+  <p>We and our 428 third-party ad partners store cookies on your device. I accept for the best experience.</p>
+  <label><input type="checkbox" id="track-cb" checked /> Marketing and Behavioral Profiling Tracking</label>
+  <div class="cookie-actions">
+    <a href="#" class="link-secondary">Manage Options</a>
+    <button class="btn btn-success" style="padding:12px 28px;">Accept All Cookies</button>
+  </div>
+</div>
+</body></html>`,
+
+    'test-pages/hidden-costs.html': `<!DOCTYPE html>
+<html><head><title>Express Tickets Checkout</title></head><body>
+<h2>Order Review & Final Payment</h2>
+<div>General Admission Ticket: $45.00</div>
+<div style="color:#DC2626;">Mandatory service fee added at checkout: $14.50</div>
+<div style="color:#DC2626;">Cleaning fee: $8.00</div>
+<label><input type="checkbox" checked /> Add Ticket Damage Protection Warranty for $5.99</label>
+<p>* VIP club membership renews automatically at $19 per month after trial.</p>
+<button class="btn btn-primary">Complete Order ($73.49)</button>
+</body></html>`,
+
+    'test-pages/confirmshaming.html': `<!DOCTYPE html>
+<html><head><title>TrendyStyle Fashion Discount</title></head><body>
+<div class="modal-content">
+  <h3>Wait! Get 25% Off Your Entire Order!</h3>
+  <button class="btn btn-primary">Claim My 25% Discount</button>
+  <a href="#">No thanks, I don't care about saving money</a>
+  <a href="#">No, I prefer paying full price and missing out</a>
+  <label><input type="checkbox" /> Uncheck this box if you do not wish to receive 3 daily promotional marketing calls.</label>
+</div>
+</body></html>`,
+
+    'test-pages/cancellation-obstacles.html': `<!DOCTYPE html>
+<html><head><title>CloudStream Media Account Settings</title></head><body>
+<h3>Subscription Status: Active</h3>
+<div style="background:#FEF2F2; color:#DC2626;">⚠️ Are you sure? You will lose all your benefits and saved data forever!</div>
+<p style="color:#DC2626; font-weight:600;">To cancel, please call our 1-800 support line between 9am - 10am EST Monday through Wednesday.</p>
+<p>Alternatively, cancellation requires mailing a written letter via certified post to our corporate headquarters in Delaware.</p>
+<button class="btn btn-primary">Keep Plan (Pause subscription instead of canceling)</button>
+</body></html>`,
+
+    'test-pages/normal-marketing.html': `<!DOCTYPE html>
+<html><head><title>CleanTech Living Desk Lamp</title></head><body>
+<h2>Smart Ambient LED Desk Lamp</h2>
+<div>Product Item: $39.99</div>
+<div>Standard Estimated Shipping: $4.99 (Free for orders over $50)</div>
+<div>Estimated Total: $44.98</div>
+<p>All items include a hassle-free 30-day money-back guarantee. You can cancel your subscription at any time with one click from your account dashboard.</p>
+<div class="cookie-banner" id="clean-cookie-banner">
+  <h4>Cookie & Privacy Preferences</h4>
+  <button class="btn btn-outline">Reject All</button>
+  <button class="btn btn-success">Accept All</button>
+</div>
+</body></html>`,
+
+    'simulated-store': `<!DOCTYPE html>
+<html><head><title>ApexCart Luxury Electronics</title></head><body>
+<div class="flash-sale-banner" style="background:#FEF2F2; padding:12px; border:2px solid #FCA5A5;">
+  <span style="color:#DC2626; font-weight:800;">⚡ MEGA FLASH SALE! </span>
+  <span>Offer expires in 2 minutes! Prices increase in 10 minutes!</span>
+  <span class="timer" style="font-family:monospace; font-weight:bold; color:#DC2626;">01:54</span>
+  <p style="font-size:12px; margin-top:4px;">Buy now before the timer ends! Time is running out!</p>
+</div>
+<div class="product-box" style="margin-top:20px;">
+  <h2>ApexVision 4K OLED Smart Display (55")</h2>
+  <div class="stock-warning" style="background:#FFFBEB; padding:10px; margin:12px 0; color:#B45309; font-weight:bold;">
+    🔥 High Demand: Only 1 item left in stock at this discounted rate! Almost sold out!
+  </div>
+  <div style="background:#EFF6FF; padding:8px; color:#1E40AF; margin-bottom:12px;">
+    👁️ 24 shoppers are viewing this deal right now! Booked 9 times in the last hour!
+  </div>
+  <div class="price-section" style="margin-bottom:12px;">
+    <span style="font-size:26px; font-weight:bold; color:#16A34A;">$399.00</span>
+    <span style="text-decoration:line-through; color:#94A3B8; margin-left:8px;">$999.00</span>
+    <span style="background:#FEE2E2; color:#DC2626; padding:2px 6px; font-weight:bold; font-size:12px;">60% OFF</span>
+  </div>
+  <div style="background:#F8FAFC; border:1px solid #E2E8F0; padding:12px; margin:12px 0;">
+    <div style="color:#DC2626; font-weight:bold;">Mandatory service fee added at checkout: $28.50</div>
+    <div style="color:#DC2626; font-size:13px;">Cleaning fee: $12.00</div>
+    <label style="display:flex; align-items:center; gap:8px; margin-top:8px; font-size:13px; color:#1E40AF;">
+      <input type="checkbox" checked /> Automatically add 2-Year Extended Screen Replacement Warranty for $24.99
+    </label>
+    <p style="font-size:11px; color:#64748B; margin-top:4px;">* VIP club membership renews automatically at $19 per month after trial.</p>
+  </div>
+  <button class="btn btn-primary" style="padding:14px 28px; font-size:16px;">
+    Claim Deal Now (Before Timer Ends)
+  </button>
+  <div style="margin-top:14px;">
+    <a href="#" style="color:#94A3B8; font-size:12px; text-decoration:underline;">No thanks, I don't care about saving money</a>
+  </div>
+</div>
+</body></html>`
+  };
 
   // State
   let storedScans = [];
@@ -185,6 +319,67 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
+  // Simulated Live Store button
+  const btnSimStore = document.getElementById('btn-sim-store');
+  if (btnSimStore) {
+    btnSimStore.addEventListener('click', () => {
+      targetUrlInput.value = 'https://demo.apex-store.local/deal';
+      scanHtmlLocally(EMBEDDED_FIXTURES['simulated-store'], 'Simulated Online MegaStore (Live Demo)');
+    });
+  }
+
+  // File Upload handling
+  const btnUploadFile = document.getElementById('btn-upload-file');
+  const htmlFileInput = document.getElementById('html-file-input');
+  if (btnUploadFile && htmlFileInput) {
+    btnUploadFile.addEventListener('click', () => {
+      htmlFileInput.click();
+    });
+
+    htmlFileInput.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (readEvt) => {
+        const content = readEvt.target.result;
+        targetUrlInput.value = file.name;
+        scanHtmlLocally(content, file.name);
+      };
+      reader.onerror = () => {
+        showScanAlert('Could not read the uploaded HTML file.', 'error');
+      };
+      reader.readAsText(file);
+    });
+  }
+
+  // Drag and Drop HTML files on hero card
+  const scannerHeroCard = document.querySelector('.scanner-hero-card');
+  if (scannerHeroCard) {
+    scannerHeroCard.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      scannerHeroCard.classList.add('drag-over');
+    });
+    scannerHeroCard.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      scannerHeroCard.classList.remove('drag-over');
+    });
+    scannerHeroCard.addEventListener('drop', (e) => {
+      e.preventDefault();
+      scannerHeroCard.classList.remove('drag-over');
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        const file = e.dataTransfer.files[0];
+        const reader = new FileReader();
+        reader.onload = (readEvt) => {
+          const content = readEvt.target.result;
+          targetUrlInput.value = file.name;
+          scanHtmlLocally(content, file.name);
+        };
+        reader.readAsText(file);
+      }
+    });
+  }
+
   // Toggle HTML paste box
   if (btnTogglePaste && pasteHtmlContainer) {
     btnTogglePaste.addEventListener('click', () => {
@@ -208,77 +403,188 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   /**
+   * Safe timeout signal creator compatible with all browsers
+   */
+  function createTimeoutSignal(timeoutMs) {
+    if (typeof AbortController !== 'undefined') {
+      const controller = new AbortController();
+      const id = setTimeout(() => {
+        try { controller.abort(); } catch (e) {}
+      }, timeoutMs);
+      return { signal: controller.signal, cleanup: () => clearTimeout(id) };
+    }
+    return { signal: undefined, cleanup: () => {} };
+  }
+
+  function escapeHtml(str) {
+    return String(str || '').replace(/[&<>"']/g, m => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[m]);
+  }
+
+  /**
    * Main scan routine: Handles live remote websites, local server API, and local test files
    */
   async function executeWebsiteScan(rawUrl) {
-    let targetUrl = rawUrl.trim();
-    if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://') && !targetUrl.startsWith('../') && !targetUrl.startsWith('./')) {
-      targetUrl = 'https://' + targetUrl;
+    let targetUrl = (rawUrl || '').trim();
+    if (!targetUrl) return;
+
+    // 1. Direct check against embedded synthetic fixtures (100% offline & instant)
+    const normalizedKey = targetUrl.replace(/^\.\.\//, '').replace(/^\.\//, '');
+    if (EMBEDDED_FIXTURES[normalizedKey]) {
+      setScanLoading(true, `Analyzing test fixture...`);
+      setTimeout(() => {
+        scanHtmlLocally(EMBEDDED_FIXTURES[normalizedKey], normalizedKey);
+        setScanLoading(false);
+      }, 100);
+      return;
     }
 
-    setScanLoading(true, `Analyzing ${targetUrl}...`);
-    showScanAlert(`Connecting to ${targetUrl}...`, 'info');
-
-    try {
-      // 1. If URL is a local test fixture or relative file
-      if (targetUrl.startsWith('../test-pages/') || targetUrl.startsWith('./test-pages/') || targetUrl.includes('.html')) {
-        const response = await fetch(targetUrl);
-        if (!response.ok) throw new Error(`Could not load local fixture (${response.status})`);
-        const html = await response.text();
-        scanHtmlLocally(html, targetUrl);
-        setScanLoading(false);
+    // 2. If URL is a local test fixture or relative file
+    if (targetUrl.includes('test-pages/') || targetUrl.endsWith('.html')) {
+      const cleanPath = targetUrl.replace(/^\.\.\//, '');
+      if (EMBEDDED_FIXTURES[cleanPath]) {
+        setScanLoading(true, `Analyzing test fixture...`);
+        setTimeout(() => {
+          scanHtmlLocally(EMBEDDED_FIXTURES[cleanPath], cleanPath);
+          setScanLoading(false);
+        }, 100);
         return;
       }
 
-      // 2. If running with ClickTrap local backend server (server.js on localhost)
-      // Check if server API endpoint is accessible
       try {
-        const apiResponse = await fetch('/api/scan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: targetUrl }),
-          signal: AbortSignal.timeout(12000)
-        });
+        setScanLoading(true, `Loading local test page...`);
+        const resp = await fetch(cleanPath);
+        if (resp.ok) {
+          const html = await resp.text();
+          scanHtmlLocally(html, cleanPath);
+          setScanLoading(false);
+          return;
+        }
+      } catch (fileErr) {
+        // Fallback to embedded fixture if available
+        if (EMBEDDED_FIXTURES[cleanPath]) {
+          scanHtmlLocally(EMBEDDED_FIXTURES[cleanPath], cleanPath);
+          setScanLoading(false);
+          return;
+        }
+      }
+    }
 
-        if (apiResponse.ok) {
-          const result = await apiResponse.json();
-          if (result.report) {
-            handleScanSuccess(result.report);
+    // Ensure full URL scheme
+    if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+      targetUrl = 'https://' + targetUrl;
+    }
+
+    setScanLoading(true, `Connecting to ${targetUrl}...`);
+    showScanAlert(`Connecting to ${targetUrl}...`, 'info');
+
+    // 3. If running with ClickTrap local backend server (server.js on localhost)
+    try {
+      const { signal, cleanup } = createTimeoutSignal(8000);
+      const apiResponse = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: targetUrl }),
+        signal
+      });
+      cleanup();
+
+      if (apiResponse.ok) {
+        const result = await apiResponse.json();
+        if (result.report) {
+          handleScanSuccess(result.report);
+          setScanLoading(false);
+          return;
+        }
+      }
+    } catch (serverErr) {
+      // Local server not running, continue to client fallback
+    }
+
+    // 4. Direct browser fetch (works if target domain enables CORS)
+    try {
+      const { signal, cleanup } = createTimeoutSignal(5000);
+      const directResp = await fetch(targetUrl, { signal });
+      cleanup();
+
+      if (directResp.ok) {
+        const html = await directResp.text();
+        if (html && html.length > 50) {
+          scanHtmlLocally(html, targetUrl);
+          setScanLoading(false);
+          return;
+        }
+      }
+    } catch (corsErr) {
+      // Direct CORS blocked, proceed to proxies
+    }
+
+    // 5. Waterfall of reliable CORS proxies for static hosting (GitHub Pages)
+    const proxies = [
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+      `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`,
+      `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`
+    ];
+
+    for (let i = 0; i < proxies.length; i++) {
+      try {
+        setScanLoading(true, `Inspecting via security proxy (${i + 1}/${proxies.length})...`);
+        const { signal, cleanup } = createTimeoutSignal(8000);
+        const proxyResp = await fetch(proxies[i], { signal });
+        cleanup();
+
+        if (proxyResp.ok) {
+          const html = await proxyResp.text();
+          if (html && html.trim().length > 100 && !html.includes('allorigins: error')) {
+            scanHtmlLocally(html, targetUrl);
             setScanLoading(false);
             return;
           }
         }
-      } catch (serverErr) {
-        // If server is not running, proceed to client fallback
+      } catch (proxyErr) {
+        // Try next proxy
       }
+    }
 
-      // 3. Fallback: Direct browser fetch or public CORS proxy
-      try {
-        const directResp = await fetch(targetUrl, { signal: AbortSignal.timeout(8000) });
-        if (directResp.ok) {
-          const html = await directResp.text();
-          scanHtmlLocally(html, targetUrl);
-          setScanLoading(false);
-          return;
-        }
-      } catch (corsErr) {
-        // Attempt fetch via free public CORS proxy for live demonstration
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
-        const proxyResp = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) });
-        if (proxyResp.ok) {
-          const html = await proxyResp.text();
-          scanHtmlLocally(html, targetUrl);
-          setScanLoading(false);
-          return;
-        }
-      }
+    // 6. Graceful, helpful recovery when external live fetch is restricted
+    setScanLoading(false);
+    showScanAlertHtml(`
+      <div style="margin-bottom:6px;">
+        <strong>⚠️ Cannot directly load "${escapeHtml(targetUrl)}" due to browser cross-origin policy (CORS) on static GitHub Pages.</strong>
+      </div>
+      <p style="font-size:12px; opacity:0.9; margin-bottom:10px;">
+        Commercial websites (Amazon, Booking, Nike) block third-party proxies. You can inspect it immediately using any of these simple methods:
+      </p>
+      <div class="scan-alert-actions">
+        <button type="button" class="btn btn-primary btn-sm" id="alert-btn-sim">⚡ Test with Live Simulation Store</button>
+        <button type="button" class="btn btn-secondary btn-sm" id="alert-btn-paste">📋 Paste Webpage HTML</button>
+        <button type="button" class="btn btn-secondary btn-sm" id="alert-btn-file">📁 Upload .html File</button>
+      </div>
+    `, 'error');
 
-      throw new Error('Browser blocked cross-origin access. Start the local server by running `npm start` in your terminal to scan any live URL, or use our pre-built test pages below!');
+    // Connect alert actions
+    const alertBtnSim = document.getElementById('alert-btn-sim');
+    const alertBtnPaste = document.getElementById('alert-btn-paste');
+    const alertBtnFile = document.getElementById('alert-btn-file');
 
-    } catch (err) {
-      console.error('[ClickTrap Scanner Error]', err);
-      showScanAlert(`Scan notice: ${err.message}`, 'error');
-      setScanLoading(false);
+    if (alertBtnSim) {
+      alertBtnSim.onclick = () => {
+        targetUrlInput.value = 'https://demo.apex-store.local/deal';
+        scanHtmlLocally(EMBEDDED_FIXTURES['simulated-store'], 'Simulated Online MegaStore (Live Demo)');
+      };
+    }
+    if (alertBtnPaste && pasteHtmlContainer) {
+      alertBtnPaste.onclick = () => {
+        pasteHtmlContainer.classList.remove('hidden');
+        if (rawHtmlInput) rawHtmlInput.focus();
+        pasteHtmlContainer.scrollIntoView({ behavior: 'smooth' });
+      };
+    }
+    if (alertBtnFile && htmlFileInput) {
+      alertBtnFile.onclick = () => {
+        htmlFileInput.click();
+      };
     }
   }
 
@@ -287,9 +593,15 @@ document.addEventListener('DOMContentLoaded', async () => {
    */
   function scanHtmlLocally(htmlString, sourceUrl) {
     try {
+      const engine = getDetector();
+      if (!engine) {
+        showScanAlert('Detector engine is loading. Please try again in a moment.', 'error');
+        return;
+      }
+
       const parser = new DOMParser();
       const parsedDoc = parser.parseFromString(htmlString, 'text/html');
-      const report = detector.scanDocument(parsedDoc, sourceUrl);
+      const report = engine.scanDocument(parsedDoc, sourceUrl);
 
       // Clean serialized report
       const cleanReport = {
@@ -336,7 +648,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setTimeout(() => {
       openReport(report);
       scanStatusAlert.classList.add('hidden');
-    }, 600);
+    }, 500);
   }
 
   function setScanLoading(loading, message = 'Scanning...') {
@@ -353,6 +665,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function showScanAlert(text, type = 'info') {
     scanStatusAlert.textContent = text;
+    scanStatusAlert.className = `scan-alert ${type}`;
+    scanStatusAlert.classList.remove('hidden');
+  }
+
+  function showScanAlertHtml(html, type = 'info') {
+    scanStatusAlert.innerHTML = html;
     scanStatusAlert.className = `scan-alert ${type}`;
     scanStatusAlert.classList.remove('hidden');
   }

@@ -42,7 +42,12 @@
         "content.css",
         "rules.js",
         "detector.js",
-        "dashboard/*"
+        "index.html",
+        "dashboard.css",
+        "dashboard.js",
+        "evaluation-data.js",
+        "dashboard/*",
+        "test-pages/*"
       ],
       "matches": ["<all_urls>"]
     }

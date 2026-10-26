@@ -127,16 +127,20 @@ if (require.main === module) {
 
   console.log('\n================================================================\n');
 
-  // Also save evaluation results JSON to be shared with dashboard
-  const outJson = path.join(__dirname, '..', 'dashboard', 'evaluation-data.js');
+  // Export evaluation results to both root and dashboard directory
+  const rootOutJson = path.join(__dirname, '..', 'evaluation-data.js');
+  const dashOutJson = path.join(__dirname, '..', 'dashboard', 'evaluation-data.js');
   const jsContent = `/**
  * ClickTrap Auto-Generated Evaluation Benchmark Data
  * Exported for display in the Web Dashboard Evaluation View
  */
 window.ClickTrapEvaluationData = ${JSON.stringify(report, null, 2)};
 `;
-  fs.writeFileSync(outJson, jsContent, 'utf8');
-  console.log(`Exported benchmark metrics to dashboard/evaluation-data.js`);
+  fs.writeFileSync(rootOutJson, jsContent, 'utf8');
+  try {
+    fs.writeFileSync(dashOutJson, jsContent, 'utf8');
+  } catch (e) {}
+  console.log(`Exported benchmark metrics to evaluation-data.js`);
 }
 
 module.exports = { evaluateDataset };
